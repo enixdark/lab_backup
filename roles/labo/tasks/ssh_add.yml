@@ -1,0 +1,14 @@
+---
+- name: Generate ssh for "{{ user.name }}"
+  user:
+    name: "{{ item.name }}"
+    generate_ssh_key: yes
+    ssh_key_bits: 2048
+    ssh_key_file: .ssh/id_rsa
+  with_items: "{{ users }}"
+- name: Set authorized key took from file
+  authorized_key:
+    user: "{{ ssh_key.origin_user }}"
+    state: present
+    key: "{{ ssh_key.value if ssh_key.value else lookup('file', ssh_key.public_ssh_file) }}"
+  with_items: "{{ users }}"

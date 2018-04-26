@@ -1,0 +1,8 @@
+[local]
+localhost ansible_connection=local
+
+[labo]
+# uncomment if use VM for testing
+#labo ansible_ssh_host=10.0.0.10 ansible_ssh_port=22 ansible_ssh_user=vagrant ansible_ssh_pass=vagrant ansible_sudo_pass=vagrant
+
+

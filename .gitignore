@@ -1,0 +1,6 @@
+*.pyc
+config.ini.example
+*.log
+playbook.retry
+app.zip
+*venv

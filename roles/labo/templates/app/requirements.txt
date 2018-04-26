@@ -1,0 +1,3 @@
+pathlib
+docker
+apache-beam==2.4.0

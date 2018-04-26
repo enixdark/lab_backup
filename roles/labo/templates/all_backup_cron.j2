@@ -1,0 +1,4 @@
+{% for user in all_backup.users %}
+{{ user.cron|default('') or all_backup.cron }} sudo USER={{ user.name }} LIMITED={{ user.limited|default('') or all_backup.limited or '1' }} {{ root.virtualenv_path }}/bin/python {{ root.app_dir + '/backup.py' }} -m 'cp' {{ '-i ' + user.origin_path }} {{ '-o ' + user.backup_path if user.backup_path else '' }} {{ ('--rsync ' + (user.rsync|default('') or all_backup.rsync)|string) if ( user.rsync|default('') or all_backup.rsync ) else '' }}
+{% endfor %}
+

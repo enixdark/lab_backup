@@ -1,0 +1,35 @@
+---
+- name: Make sure we have a "{{ item.group }}" group
+  group:
+    name: "{{ item.group }}"
+    state: present
+  when: item.is_sudo and not user_remove
+  with_items: "{{ users }}"
+
+- name: Allow "{{ item.group }}" group to have passwordless sudo
+  lineinfile: 
+    dest: /etc/sudoers
+    state: present 
+    regexp: "{{ '^%' + item.group }}"
+    line: "{{ '%' + item.group + ' ALL=(ALL) NOPASSWD: ALL'}}" 
+  when: item.is_sudo and not user_remove
+  with_items: "{{ users }}"
+  
+- name: Creating user "{{ item.name }}" with admin access
+  user: 
+    name: "{{ item.name }}"
+    append: yes
+    groups: "{{ item.group if item.is_sudo else '' }}"
+    password: "{{ item.pass | password_hash('sha512') }}"
+    shell: "{{ item.shell }}"
+    update_password: on_create
+  when: not user_remove
+  with_items: "{{ users }}"
+  
+- name: Delete user "{{ item.name }}"
+  user:
+    name: "{{ item.name }}"
+    state: absent
+    remove: yes
+  when: user_remove 
+  with_items: "{{ users }}"

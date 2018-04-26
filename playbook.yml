@@ -1,0 +1,15 @@
+- hosts: labo
+  gather_facts: yes
+  vars:
+    user_add: false
+    user_management: false 
+    user_remove: false
+    ssh_add: false
+    use_backup: false
+    use_docker: false
+    use_all_backup: false
+  roles:
+    - labo
+  # become: yes
+
+  

@@ -1,0 +1,141 @@
+---
+
+root:
+  name: "root"
+  root_dir: "/opt/root"
+  app_dir: "/opt/root/app"
+  virtualenv_path: "/opt/root/app/.venv"
+  python_version: "python2.7"
+  # password:
+
+all_backup:
+  cron: "0 1,13 * * *"
+  limited: 5
+  rsync: True
+  users:
+    - name: root 
+      origin_path: /home/root
+      backup_path: /tmp
+      cron: "0 1 */1 * *"
+      
+    - name: user2
+      origin_path: /home/user2/data
+      backup_path: /home/user2/backup
+      cron: "0 16 */1 * *"
+
+# create backup for mongo db with general config, however you can overwrite it in users setting
+backup:
+  processes: 1 
+  mode: cp # cp|mongo|lvm|s3
+  host: mongdb://localhost:27017 
+  database: # specific database name if not fill, it'll dump all database
+  collection: # similar, specific collction name
+  # origin_db_path: "/home/{{ item.name  }}/data" # specific path that current db 's using , this option only use for mode 'cp'
+  # backup_db_path: "/home/{{ item.name }}/backup" # specific path that you want to backup
+  docker_db_path: "/backup" # # specific path of database in docker that you want  
+  rsync: false 
+  format: "" # output folder/file backup name with format , please see python data format
+  limited: 5 # limited number of folder/file in backup directory
+  cron: "0 1,13 * * *"
+
+# setup username and password to login via ssh with multi user
+users:
+  # - name: "root" 
+  #   is_sudo: false
+  #   shell: /bin/bash
+  #   group: wheel
+  #   origin_db_path: /home/root/mongo
+  #   backup_db_path: /media/external/home/root/backup
+    
+  - name: "quandc"
+    mode: mongo
+    host: mongdb://localhost:27017 
+    is_sudo: false
+    is_docker: true
+    shell: /bin/bash
+    group: wheel
+    limited: 1
+
+management:
+  root_name: "root"
+  is_show: false 
+  external: /media/external
+  prefix_directory: home
+  ignore_users:
+    - root
+    - daemon
+    - bin
+    - sys
+    - sync
+    - games
+    - man
+    - lp
+    - mail
+    - news
+    - uucp
+    - proxy
+    - www-data
+    - backup
+    - list
+    - irc
+    - gnats
+    - nobody
+    - systemd-timesync
+    - systemd-network
+    - systemd-resolve
+    - systemd-bus-proxy
+    - syslog
+    - _apt
+    - messagebus
+    - uuidd
+    - lightdm
+    - whoopsie
+    - avahi-autoipd
+    - avahi
+    - colord
+    - dnsmasq
+    - hplip
+    - kernoops
+    - pulse
+    - rtkit
+    - saned
+    - usbmux
+    - speech-dispatcher
+    - epmd
+    - puppet
+    - debian-tor
+    - privoxy
+    - memcache
+    - mongodb
+    - postfix
+    - clamav
+    - dovecot
+    - dovenull
+    - debian-spamd
+    - amavis
+    - policyd-spf
+    - ntp
+    - nginx
+    - hab
+    - mongooseim
+    - statd
+
+# set container name or container id if use docker 
+container_name: labo_mongo
+
+# update key from file or value , you can choose any way 
+ssh_key:
+  origin_user: cqshinn
+  value: |
+    ssh-rsa x9fn5wP55ruSIKd0totg4yNL2v0ueQnkKgUSjtUeU5U7c/ns+tip3in3n8PSl1V8d+ cqshinn@Erlang
+  public_ssh_file: "/home/cqshinn/.ssh/id_rsa.pub"
+
+
+# create virtualenv on remote server
+virtualenv:
+  # path: "/home/{{ item.name }}/.venv" # specific path for setup virtualenv for each user, use item variable if enable multi user 
+  python_version: "python2.7"
+  # app_dir: "/home/{{ item.name }}/app" # specific path for app for each user, use item variable if enable multi user 
+
+
+  

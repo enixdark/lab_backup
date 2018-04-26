@@ -1,0 +1,15 @@
+---
+- name: Show list all user 
+  command: cut -d':' -f 1 /etc/passwd
+  when: management.is_show
+
+- name: Copy management python file to remote server 
+  template:
+    src: ../templates/manage_user_folders.py.j2
+    dest: /tmp/manage_user_folders.py
+    owner: "{{ management.root_name }}"
+    group: "{{ management.root_name }}"
+    # mode: 0644
+
+- name: Run mangement python file to create all user for specific directory
+  command: sh -c "chmod +x /tmp/manage_user_folders.py && python /tmp/manage_user_folders.py"

@@ -1,0 +1,83 @@
+---
+
+- name: compress folder
+  run_once: true
+  hosts: 127.0.0.1
+  connection: local
+  shell: cd roles/labo/templates && zip -r app.zip app -x 'app/tests/*' -x '*.pyc' -x 'app/log/*'
+
+- name: Copying app folder
+  copy:
+    # src: ../templates/app/
+    src: ../templates/app.zip
+    dest: /home/{{ item.name }}/
+    owner: "{{ item.name }}"
+    group: "{{ item.name }}"
+    mode: 0644 
+  with_items: "{{ users }}"
+  rsync_opts:
+    - "--exclude=.git"
+    - "--exclude=*.pyc"
+    - "--exclude=*.log"
+    - "--exclude=*.ini"
+  # become_user: "{{ user.name}}"
+  become: yes
+  become_sudo: yes
+  become_user: "{{ item.name}}"
+
+- name: uncompress folder on server
+  command: unzip -o /home/{{ item.name }}/app.zip -d /home/{{ item.name }}
+  with_items: "{{ users }}"
+  become: yes
+  become_sudo: yes
+  become_user: "{{ item.name}}"
+
+- name: Copy config file to app project
+  template:
+    src: ../templates/config.ini.j2
+    dest: "{{ virtualenv.app_dir + '/config.ini' }}"
+    owner: "{{ item.name }}"
+    group: "{{ item.name }}"
+    mode: 0644
+    # validate: cat "{{ virtualenv.app_dir + '/config.json' }}" | python -m json.tool >> /dev/null && exit 0 || exit 1
+    backup: yes
+  with_items: "{{ users }}"
+  become: yes
+  become_sudo: yes
+  become_user: "{{ item.name}}"
+
+- name: Initiate virtualenv
+  pip: 
+    virtualenv: "{{ virtualenv.path }}" 
+    virtualenv_python: "{{ virtualenv.python_version }}"
+    requirements: "{{ virtualenv.app_dir + '/requirements.txt'}}"
+  # become_user: "{{ user.name}}"
+  with_items: "{{ users }}"
+  become: yes
+  become_sudo: yes
+  become_user: "{{ item.name}}"
+
+- name: Copy cron file to app project
+  template:
+    src: ../templates/cron.j2
+    dest: "{{ virtualenv.app_dir + '/cronfile' }}"
+    owner: "{{ item.name }}"
+    group: "{{ item.name }}"
+    mode: 0644
+    backup: yes
+  with_items: "{{ users }}"
+  become: yes
+  become_sudo: yes
+  become_user: "{{ item.name}}"
+
+  # environment:
+  #   CONTAINER_NAME: "{{ container_name }}"
+  #   USE_DOCKER: "{{ use_docker }}"
+  # register: result
+
+- name: Ensure crontab file is active.
+  shell: sudo crontab -u root "{{ virtualenv.app_dir + '/cronfile' }}"
+  become: yes
+  become_sudo: yes
+
+

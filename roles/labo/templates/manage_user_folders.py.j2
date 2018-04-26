@@ -1,0 +1,25 @@
+import os
+import subprocess
+
+user_ignores = {{ management.ignore_users }}
+external_directory = '{{ management.external }}'
+prefix_directory = '{{ management.prefix_directory }}'
+
+users = []
+
+# get all user/group in unix system
+with open("/etc/passwd") as file:
+    for line in file:
+        if  int(line.split(":")[2])  >= 1000 \
+            and not str(line.split(":")[6]).__contains__("nologin"):
+            users.append(line.split(":")[0])
+
+# filter, remove all user that in ignore list 
+for user in users:
+    if user in user_ignores:
+        users.remove(user)
+
+# create folder, directory and change permission for each user 
+for user in users:
+    subprocess.call(['mkdir -p %s' % os.path.join(external_directory, prefix_directory, user)], shell=True)
+    subprocess.call(['chown -R %s:%s %s' % (user, user, os.path.join(external_directory, prefix_directory, user))], shell=True)

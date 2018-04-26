@@ -1,0 +1,61 @@
+- name: compress folder
+  run_once: true
+  hosts: 127.0.0.1
+  connection: local
+  shell: cd roles/labo/templates && zip -r app.zip app -x 'app/tests/*' -x '*.pyc' -x 'app/log/*'
+
+- name: Copying app folder
+  copy:
+    # src: ../templates/app/
+    src: ../templates/app.zip
+    dest: "/home/{{ root.name }}/"
+    owner: "{{ root.name }}"
+    group: "{{ root.name }}"
+    mode: 0644 
+  become: yes
+  become_sudo: yes
+
+- name: uncompress folder on server
+  command: unzip -o /home/{{ root.name }}/app.zip -d {{ root.root_dir }} 
+  become: yes
+  become_sudo: yes
+
+- name: change permission app folder 
+  command: chown -R {{ root.name }}:{{ root.name }} {{ root.root_dir }}
+  become: yes
+  become_sudo: yes
+
+- name: Copy config file to app project in system
+  template:
+    src: ../templates/config.ini.j2
+    dest: "{{ root.app_dir + '/config.ini' }}"
+    owner: "{{ root.name }}"
+    group: "{{ root.name }}"
+    mode: 0644
+    # all_backup: yes
+  become: yes
+  become_sudo: yes
+
+- name: Initiate virtualenv
+  pip: 
+    virtualenv: "{{ root.virtualenv_path }}" 
+    virtualenv_python: "{{ root.python_version }}"
+    requirements: "{{ root.app_dir + '/requirements.txt'}}" 
+  become: yes
+  become_sudo: yes
+
+- name: Copy cron file to app project
+  template:
+    src: ../templates/all_backup_cron.j2
+    dest: "{{ root.app_dir + '/cronfile' }}"
+    owner: "{{ root.name }}"
+    group: "{{ root.name }}"
+    mode: 0644
+    backup: yes
+  become: yes
+  become_sudo: yes
+
+- name: Ensure crontab file is active.
+  shell: crontab -u root "{{ root.app_dir + '/cronfile' }}"
+  become: yes
+  become_sudo: yes

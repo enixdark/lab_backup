@@ -1,0 +1,21 @@
+---
+- include: user_add.yml
+  when: user_add
+  tags: [labo, user_add]
+# note this tasks require sudo permision so it'll not work for any other normally user 
+- include: user_management.yml
+  when: user_management
+  tags: [labo, user_management]
+  become: yes
+  become_sudo: yes
+- include: ssh_add.yml
+  when: ssh_add
+  tags: [labo, ssh_add]
+- include: backup.yml
+  when: use_backup
+  tags: [labo, backup]
+# Note: this task inly use for sudo and root user
+- include: all_backup.yml
+  when: use_all_backup
+  tags: [labo, all_backup]
+  
